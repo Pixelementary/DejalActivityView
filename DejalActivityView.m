@@ -137,7 +137,7 @@ static DejalActivityView *dejalActivityView = nil;
 	
     // Allow subclasses to change the view to which to add the activity view (e.g. to cover the keyboard):
     self.originalView = addToView;
-    addToView = [self viewForView:addToView];
+    //addToView = [self viewForView:addToView];
     
     // Configure this view (the background) and its subviews:
     [self setupBackground];
