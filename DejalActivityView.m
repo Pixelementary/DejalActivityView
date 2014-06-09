@@ -3,7 +3,7 @@
 //  Dejal Open Source
 //
 //  Created by David Sinclair on 2009-07-26.
-//  Copyright (c) 2009-2012 Dejal Systems, LLC. All rights reserved.
+//  Copyright (c) 2009-2013 Dejal Systems, LLC. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without modification,
 //  are permitted provided that the following conditions are met:
@@ -62,7 +62,7 @@ static DejalActivityView *dejalActivityView = nil;
  Returns the currently displayed activity view, or nil if there isn't one.
  
  Written by DJS 2009-07.
-*/
+ */
 
 + (DejalActivityView *)currentActivityView;
 {
@@ -77,7 +77,7 @@ static DejalActivityView *dejalActivityView = nil;
  Written by DJS 2009-07.
  Changed by DJS 2010-06 to add "new" prefix to the method name to make it clearer that this returns a retained object.
  Changed by DJS 2011-08 to remove the "new" prefix again.
-*/
+ */
 
 + (DejalActivityView *)activityViewForView:(UIView *)addToView;
 {
@@ -92,7 +92,7 @@ static DejalActivityView *dejalActivityView = nil;
  Written by DJS 2009-07.
  Changed by DJS 2010-06 to add "new" prefix to the method name to make it clearer that this returns a retained object.
  Changed by DJS 2011-08 to remove the "new" prefix again.
-*/
+ */
 
 + (DejalActivityView *)activityViewForView:(UIView *)addToView withLabel:(NSString *)labelText;
 {
@@ -107,7 +107,7 @@ static DejalActivityView *dejalActivityView = nil;
  Written by DJS 2009-07.
  Changed by DJS 2010-06 to add "new" prefix to the method name to make it clearer that this returns a retained object.
  Changed by DJS 2011-08 to remove the "new" prefix again, and move the singleton stuff to here.
-*/
+ */
 
 + (DejalActivityView *)activityViewForView:(UIView *)addToView withLabel:(NSString *)labelText width:(NSUInteger)aLabelWidth;
 {
@@ -128,7 +128,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-08 to move the singleton stuff to the calling class method, where it should be.
-*/
+ */
 
 - (DejalActivityView *)initForView:(UIView *)addToView withLabel:(NSString *)labelText width:(NSUInteger)aLabelWidth;
 {
@@ -171,7 +171,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2009-09 to disable the network activity indicator if it was shown by this view.
-*/
+ */
 
 + (void)removeView;
 {
@@ -193,7 +193,7 @@ static DejalActivityView *dejalActivityView = nil;
  Returns the view to which to add the activity view.  By default returns the same view.  Subclasses may override this to change the view.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (UIView *)viewForView:(UIView *)view;
 {
@@ -206,7 +206,7 @@ static DejalActivityView *dejalActivityView = nil;
  Returns the frame to use for the activity view.  Defaults to the superview's bounds.  Subclasses may override this to use something different, if desired.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (CGRect)enclosingFrame;
 {
@@ -219,7 +219,7 @@ static DejalActivityView *dejalActivityView = nil;
  Configure the background of the activity view.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)setupBackground;
 {
@@ -234,7 +234,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UIView *)makeBorderView;
 {
@@ -253,7 +253,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UIActivityIndicatorView *)makeActivityIndicator;
 {
@@ -271,14 +271,15 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ Changed by chrisledet 2013-01 to use NSTextAlignmentLeft instead of the deprecated UITextAlignmentLeft.
+ */
 
 - (UILabel *)makeActivityLabelWithText:(NSString *)labelText;
 {
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
     
     label.font = [UIFont systemFontOfSize:[UIFont systemFontSize]];
-    label.textAlignment = UITextAlignmentLeft;
+    label.textAlignment = NSTextAlignmentLeft;
     label.textColor = [UIColor blackColor];
     label.backgroundColor = [UIColor clearColor];
     label.shadowColor = [UIColor whiteColor];
@@ -294,7 +295,7 @@ static DejalActivityView *dejalActivityView = nil;
  Positions and sizes the various views that make up the activity view, including after rotation.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)layoutSubviews;
 {
@@ -304,7 +305,16 @@ static DejalActivityView *dejalActivityView = nil;
     if (!CGAffineTransformIsIdentity(self.borderView.transform))
         return;
     
-    CGSize textSize = [self.activityLabel.text sizeWithFont:[UIFont systemFontOfSize:[UIFont systemFontSize]]];
+    CGSize textSize;
+    if ([self.activityLabel.text respondsToSelector:@selector(sizeWithAttributes:)]) {
+        textSize = [self.activityLabel.text sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:[UIFont systemFontSize]]}];
+    }
+    else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        textSize = [self.activityLabel.text sizeWithFont:[UIFont systemFontOfSize:[UIFont systemFontSize]]];
+#pragma clang diagnostic pop
+    }
     
     // Use the fixed width if one is specified:
     if (self.labelWidth > 10)
@@ -339,7 +349,7 @@ static DejalActivityView *dejalActivityView = nil;
  Animates the view into visibility.  Does nothing for the simple activity view.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)animateShow;
 {
@@ -352,7 +362,7 @@ static DejalActivityView *dejalActivityView = nil;
  Animates the view out of visibiltiy.  Does nothng for the simple activity view.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)animateRemove;
 {
@@ -365,7 +375,7 @@ static DejalActivityView *dejalActivityView = nil;
  Sets whether or not to show the network activity indicator in the status bar.  Set to YES if the activity is network-related.  This can be toggled on and off as desired while the activity view is visible (e.g. have it on while fetching data, then disable it while parsing it).  By default it is not shown.
  
  Written by DJS 2009-09.
-*/
+ */
 
 - (void)setShowNetworkActivityIndicator:(BOOL)show;
 {
@@ -391,7 +401,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-10.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UIActivityIndicatorView *)makeActivityIndicator;
 {
@@ -409,7 +419,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-10.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UILabel *)makeActivityLabelWithText:(NSString *)labelText;
 {
@@ -437,7 +447,7 @@ static DejalActivityView *dejalActivityView = nil;
  Returns the view to which to add the activity view.  For the bezel style, if there is a keyboard displayed, the view is changed to the keyboard's superview.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (UIView *)viewForView:(UIView *)view;
 {
@@ -455,7 +465,7 @@ static DejalActivityView *dejalActivityView = nil;
  Returns the frame to use for the activity view.  For the bezel style, if there is a keyboard displayed, the frame is changed to cover the keyboard too.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (CGRect)enclosingFrame;
 {
@@ -473,7 +483,7 @@ static DejalActivityView *dejalActivityView = nil;
  Configure the background of the activity view.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)setupBackground;
 {
@@ -489,7 +499,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UIView *)makeBorderView;
 {
@@ -508,7 +518,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UIActivityIndicatorView *)makeActivityIndicator;
 {
@@ -527,18 +537,19 @@ static DejalActivityView *dejalActivityView = nil;
  Written by DJS 2009-07.
  Changed by Suleman Sidat 2011-07 to support a multi-line label.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ Changed by chrisledet 2013-01 to use NSTextAlignmentCenter and NSLineBreakByWordWrapping instead of the deprecated UITextAlignmentCenter and UILineBreakModeWordWrap.
+ */
 
 - (UILabel *)makeActivityLabelWithText:(NSString *)labelText;
 {
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
     
     label.font = [UIFont boldSystemFontOfSize:[UIFont systemFontSize]];
-    label.textAlignment = UITextAlignmentCenter;
+    label.textAlignment = NSTextAlignmentCenter;
     label.textColor = [UIColor whiteColor];
     label.backgroundColor = [UIColor clearColor];
     label.numberOfLines = 0;
-    label.lineBreakMode = UILineBreakModeWordWrap; 
+    label.lineBreakMode = NSLineBreakByWordWrapping;
     label.text = labelText;
     
     return label;
@@ -551,7 +562,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by Suleman Sidat 2011-07 to support a multi-line label.
-*/
+ */
 
 - (void)layoutSubviews;
 {
@@ -562,7 +573,26 @@ static DejalActivityView *dejalActivityView = nil;
     self.frame = [self enclosingFrame];
     
     CGSize maxSize = CGSizeMake(260, 400);
-    CGSize textSize = [self.activityLabel.text sizeWithFont:[UIFont boldSystemFontOfSize:[UIFont systemFontSize]] constrainedToSize:maxSize lineBreakMode:self.activityLabel.lineBreakMode];
+    
+    CGSize textSize;
+    if ([self.activityLabel.text respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]) {
+        NSMutableParagraphStyle *para = [NSMutableParagraphStyle new];
+        para.lineBreakMode = self.activityLabel.lineBreakMode;
+        textSize = [self.activityLabel.text boundingRectWithSize:maxSize
+                                                         options:NSStringDrawingUsesLineFragmentOrigin
+                                                      attributes:@{NSFontAttributeName:[UIFont boldSystemFontOfSize:[UIFont systemFontSize]],
+                                                                   NSParagraphStyleAttributeName:para}
+                                                         context:nil].size;
+        
+    }
+    else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        textSize = [self.activityLabel.text sizeWithFont:[UIFont boldSystemFontOfSize:[UIFont systemFontSize]]
+                                       constrainedToSize:maxSize
+                                           lineBreakMode:self.activityLabel.lineBreakMode];
+#pragma clang diagnostic pop
+    }
     
     // Use the fixed width if one is specified:
     if (self.labelWidth > 10)
@@ -605,7 +635,7 @@ static DejalActivityView *dejalActivityView = nil;
  Animates the view into visibility.  For the bezel style, fades in the background and zooms the bezel down from a large size.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)animateShow;
 {
@@ -613,7 +643,7 @@ static DejalActivityView *dejalActivityView = nil;
     self.borderView.transform = CGAffineTransformMakeScale(3.0, 3.0);
     
 	[UIView beginAnimations:nil context:nil];
-//	[UIView setAnimationDuration:5.0];            // Uncomment to see the animation in slow motion
+    //	[UIView setAnimationDuration:5.0];            // Uncomment to see the animation in slow motion
 	
     self.borderView.transform = CGAffineTransformIdentity;
     self.alpha = 1.0;
@@ -628,7 +658,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2009-09 to disable the network activity indicator if it was shown by this view.
-*/
+ */
 
 - (void)animateRemove;
 {
@@ -638,7 +668,7 @@ static DejalActivityView *dejalActivityView = nil;
     self.borderView.transform = CGAffineTransformIdentity;
     
 	[UIView beginAnimations:nil context:nil];
-//	[UIView setAnimationDuration:5.0];            // Uncomment to see the animation in slow motion
+    //	[UIView setAnimationDuration:5.0];            // Uncomment to see the animation in slow motion
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector:@selector(removeAnimationDidStop:finished:context:)];
 	
@@ -659,7 +689,7 @@ static DejalActivityView *dejalActivityView = nil;
  Animates the view out from the superview and releases it, or simply removes and releases it immediately if not animating.
  
  Written by DJS 2009-07.
-*/
+ */
 
 + (void)removeViewAnimated:(BOOL)animated;
 {
@@ -690,7 +720,7 @@ static DejalActivityView *dejalActivityView = nil;
  Written by DJS 2009-07.
  Changed by DJS 2010-06 to add "new" prefix to the method name to make it clearer that this returns a retained object.
  Changed by DJS 2011-08 to remove the "new" prefix again.
-*/
+ */
 
 + (DejalKeyboardActivityView *)activityView;
 {
@@ -705,7 +735,7 @@ static DejalActivityView *dejalActivityView = nil;
  Written by DJS 2009-07.
  Changed by DJS 2010-06 to add "new" prefix to the method name to make it clearer that this returns a retained object.
  Changed by DJS 2011-08 to remove the "new" prefix again.
-*/
+ */
 
 + (DejalKeyboardActivityView *)activityViewWithLabel:(NSString *)labelText;
 {
@@ -723,7 +753,7 @@ static DejalActivityView *dejalActivityView = nil;
  Returns the view to which to add the activity view.  For the keyboard style, returns the same view (which will already be the keyboard).
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (UIView *)viewForView:(UIView *)view;
 {
@@ -736,7 +766,7 @@ static DejalActivityView *dejalActivityView = nil;
  Animates the view into visibility.  For the keyboard style, simply fades in.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)animateShow;
 {
@@ -756,7 +786,7 @@ static DejalActivityView *dejalActivityView = nil;
  Animates the view out, deferring the removal until the animation is complete.  For the keyboard style, simply fades out.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)animateRemove;
 {
@@ -776,7 +806,7 @@ static DejalActivityView *dejalActivityView = nil;
  Configure the background of the activity view.
  
  Written by DJS 2009-07.
-*/
+ */
 
 - (void)setupBackground;
 {
@@ -792,7 +822,7 @@ static DejalActivityView *dejalActivityView = nil;
  
  Written by DJS 2009-07.
  Changed by DJS 2011-11 to simplify and make it easier to override.
-*/
+ */
 
 - (UIView *)makeBorderView;
 {
@@ -816,7 +846,7 @@ static DejalActivityView *dejalActivityView = nil;
 //  keyboardView
 //
 //  Copyright Matt Gallagher 2009. All rights reserved.
-// 
+//
 //  Permission is given to use this source code file, free of charge, in any
 //  project, commercial or otherwise, entirely at your risk, with the condition
 //  that any redistribution (in part or whole) of source code must retain
@@ -842,4 +872,3 @@ static DejalActivityView *dejalActivityView = nil;
 }
 
 @end
-
